@@ -105,9 +105,17 @@ function getCompanyProfile(symbolsList) {
 
     // updating parameters based on symbols list
     len = symbolsList.length;
-    timeoutFactor = len / groupSize + 30; // overshoot, doesn't need to be accurate
+    timeoutFactor = len / groupSize + 1; // overshoot, doesn't need to be accurate
 
     timeTask = setInterval(async () => {
+        if (status.Symbols_fetched >= len) {
+            clearInterval(timeTask);
+    
+            // reset the status
+            status.DBConnection = false;
+            status.Current_status = "Not started yet"
+        }
+
         var j = 0; // keep track of items in groups
         var tempList = [];
 
@@ -130,21 +138,6 @@ function getCompanyProfile(symbolsList) {
         }
 
     }, intervalTime);
-    
-    /**
-     * SetTimeout and javascript in general is not accurate
-     * Give some extra time (30 more seconds given) before clearInterval is triggered
-     * If tempList array is empty, donot call mongoInsertMany func
-     */
-
-    setTimeout(() => {
-        clearInterval(timeTask);
-    
-        // reset the status
-        status.DBConnection = false;
-        status.Current_status = "Not started yet"
-
-    }, timeoutFactor * intervalTime);
 }
 
 // function to get all stock symbols
